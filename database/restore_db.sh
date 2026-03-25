@@ -85,15 +85,28 @@ if [ -f "database_backup.sql" ]; then
     fi
 fi
 
-# MongoDB restore from archive
+# MongoDB restore from archive (prefer db_connection.txt for consistent targeting)
 if [ -f "database_backup.archive" ]; then
-    if mongosh --port ${DB_PORT} --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+    MONGO_URI=""
+    if [ -f "db_connection.txt" ]; then
+        MONGO_URI="$(awk '{print $2}' db_connection.txt | head -n 1 | tr -d '\r\n')"
+    fi
+    if [ -z "${MONGO_URI}" ]; then
+        MONGO_URI="mongodb://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}?authSource=admin"
+    fi
+
+    if mongosh "${MONGO_URI}" --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
         echo "Restoring MongoDB database from backup..."
-        # Create database if it doesn't exist
-        mongosh --port ${DB_PORT} --eval "use ${DB_NAME}" > /dev/null 2>&1
-        mongorestore --port ${DB_PORT} --archive=database_backup.archive \
+        mongorestore --uri="${MONGO_URI}" --archive=database_backup.archive \
             --drop --quiet
         echo "✓ Database restored successfully"
+
+        # Ensure indexes/collections exist after restore
+        if [ -f "./provision_mongodb.sh" ]; then
+            echo "Re-provisioning MongoDB indexes after restore..."
+            ./provision_mongodb.sh
+        fi
+
         exit 0
     fi
 fi

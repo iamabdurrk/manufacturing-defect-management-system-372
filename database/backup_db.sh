@@ -85,10 +85,18 @@ if mysqladmin ping -h localhost -P ${DB_PORT} --silent 2>/dev/null || \
     exit 1
 fi
 
-# MongoDB check and backup
-if mongosh --port ${DB_PORT} --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+# MongoDB check and backup (prefer db_connection.txt for consistent targeting)
+MONGO_URI=""
+if [ -f "db_connection.txt" ]; then
+    MONGO_URI="$(awk '{print $2}' db_connection.txt | head -n 1 | tr -d '\r\n')"
+fi
+if [ -z "${MONGO_URI}" ]; then
+    MONGO_URI="mongodb://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}?authSource=admin"
+fi
+
+if mongosh "${MONGO_URI}" --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
     echo "Backing up MongoDB database..."
-    mongodump --port ${DB_PORT} --db ${DB_NAME} \
+    mongodump --uri="${MONGO_URI}" --db ${DB_NAME} \
         --archive=database_backup.archive --quiet
     echo "✓ Backup saved to database_backup.archive"
     exit 0

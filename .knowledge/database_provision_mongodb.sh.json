@@ -1,0 +1,1 @@
+{"is_source_file": true, "file_id": 8, "git_revision": "", "state": 1, "description": "", "external_files": [], "external_methods": [], "published": [], "classes": [], "methods": [], "calls": [], "search-terms": [], "hash": "6de0fe84f637a50f83954e5773360093", "format-version": 4, "code-base-name": "database", "filename": "database/provision_mongodb.sh", "knowledge_revision": 16}
