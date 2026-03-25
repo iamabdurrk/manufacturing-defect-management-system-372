@@ -1,1 +1,0 @@
-mongosh mongodb://appuser:dbuser123@localhost:5000/myapp?authSource=admin
