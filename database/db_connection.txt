@@ -1,0 +1,8 @@
+# Optional fallback for MongoDB provisioning.
+# If MONGODB_URL is not set, provision_mongodb.sh will try to read the connection string from here.
+#
+# Format (single line):
+# mongosh "mongodb://<user>:<password>@<host>:<port>"
+#
+# Example:
+# mongosh "mongodb://localhost:27017"
